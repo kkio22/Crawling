@@ -39,23 +39,30 @@ public class InflearnCategoryCrawler {
 		WebDriver driver = new ChromeDriver(options); // 옵션 넣어서 크롬 브라우져 실행 -> 원하는 페이지에 연결 가능 상태 완료
 
 		try {
-			driver.get("https://www.inflearn.com/courses"); // 연결 링크 넣어서 원하는 페이지에 접속
+			driver.get("https://www.inflearn.com/courses/"); // 연결 링크 넣어서 원하는 페이지에 접속
 
 			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 			wait.until(
 				ExpectedConditions.presenceOfElementLocated(
-					By.cssSelector("a[href*='/courses/']")
+					By.cssSelector("a[href*='inflearn.com/courses/']")
 				) // 태그 분석해서 DOM에 내가 원하는 css 부분을 가져옴 그래서 크롤링을 할 때 이게 있는지 확인하는 코드 (시간은 30초)
 			);
 
-			List<WebElement> categories = driver.findElements(
-				By.cssSelector("a[href*='/courses/']")
-			); // 상위 분류
-
 			Set<String> visited = new HashSet<>(); // 중복 방지를 위해 set 객체 선언
 
-			for (int i = 1; i < categories.size(); i++) {
-				String href = categories.get(i).getAttribute("href");
+			int i =0;
+			while(true){
+				List<WebElement> categories = driver.findElements(
+					By.cssSelector("a[href*='inflearn.com/courses/']")
+				); // 상위 분류
+
+				if(i >= categories.size()) break;
+
+				WebElement category= categories.get(i);
+
+				i++;
+
+				String href = category.getAttribute("href");
 				// 전체 URL로 변환 (상대 경로일 경우)
 				if (!href.startsWith("http")) {
 					href = "https://www.inflearn.com" + href; // href는 courses부터 시작함
@@ -67,27 +74,48 @@ public class InflearnCategoryCrawler {
 				visited.add(href);
 
 				// 여기서 바로 텍스트 추출
-				String categoryName = categories.get(i).getText().trim();
+				String categoryName = category.getText().trim();
 
 				// 빈 문자열이면 건너뜀
 				if (categoryName.isBlank())
 					continue;
-
-				Lecture lecture = Lecture.builder()
-					.topCategory(categoryName)
-					.categoryLink(href)
-					.build();
-
-				repository.save(lecture);
 
 
 				System.out.println("카테고리명: " + categoryName);
 				System.out.println("링크: " + href);
 				System.out.println("-----");
 
-				// 한 번 돌고 이제 하위 분류 돌아야하니 다시 한번 있는지 확인하는 작업 반복해야 함 -> 이걸 생각 못 함
+				// 한 번 돌고 이제 하위 분류 돌아야하니 다시 한번 있는지 확인하는 작업 반복해야 함
 
-			}
+
+				if (categoryName.equals("전체")) continue;  // 해당 반복문 그냥 통과임
+				category.click(); // 상위 페이지를 클릭해서 그 밑에 있는 하위 페이지 가져오기 -> 이거 사용하면 그 전에 저장해놓은 WebElement는 없어짐
+				Thread.sleep(1500);
+
+				List<WebElement> subCategories = driver.findElements(By.cssSelector("a.mantine-1wpc1x4[href^='/courses/']"));
+
+				for (WebElement subCategory : subCategories) {
+					String subHref = subCategory.getAttribute("href");
+
+					if (! subHref.startsWith("http")){
+						subHref = "https://www.inflearn.com" +subHref;
+					}
+
+					String subCategoryName = subCategory.getText().trim();
+
+					if (subCategoryName.isBlank()) continue;
+
+					System.out.println("하위 카테고리명: " + subCategoryName);
+					System.out.println("하위 링크: " + subHref);
+					System.out.println("-----");
+
+				}
+
+				driver.get("https://www.inflearn.com/courses/"); //하위로 이동하기 위해 전체에서 상위 카테고리를 클릭해서 페이지 이동이 있기 때문에 처음 페이지로 돌아가는 과정 필요
+				Thread.sleep(1000);
+
+
+ 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
