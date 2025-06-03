@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -76,39 +77,121 @@ public class InflearnCategoryCrawler {
 				// 여기서 바로 텍스트 추출
 				String categoryName = category.getText().trim();
 
+				if(categoryName.equals("전체")) continue;// 해당 반복문 그냥 통과임
+
 				// 빈 문자열이면 건너뜀
 				if (categoryName.isBlank())
 					continue;
 
 
-				System.out.println("카테고리명: " + categoryName);
-				System.out.println("링크: " + href);
+				System.out.println("상위 카테고리명: " + categoryName);
+				System.out.println("상위 링크: " + href);
 				System.out.println("-----");
 
 				// 한 번 돌고 이제 하위 분류 돌아야하니 다시 한번 있는지 확인하는 작업 반복해야 함
 
 
-				if (categoryName.equals("전체")) continue;  // 해당 반복문 그냥 통과임
-				category.click(); // 상위 페이지를 클릭해서 그 밑에 있는 하위 페이지 가져오기 -> 이거 사용하면 그 전에 저장해놓은 WebElement는 없어짐
-				Thread.sleep(1500);
+				try {
+					((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", category);
+					Thread.sleep(300); // 스크롤 안정화
+					wait.until(ExpectedConditions.elementToBeClickable(category));
+					((JavascriptExecutor) driver).executeScript("arguments[0].click();", category);
+					Thread.sleep(1000); // 클릭 후 로딩 대기
+				} catch (Exception e) {
+					System.out.println("클릭 실패: " + categoryName + " => " + e.getMessage());
+					continue;
+				}
 
-				List<WebElement> subCategories = driver.findElements(By.cssSelector("a.mantine-1wpc1x4[href^='/courses/']"));
+
+
+				List<WebElement> subCategories = driver.findElements(By.cssSelector("a.mantine-Text-root.mantine-Anchor-root.mantine-f6w3s2"));
+
 
 				for (WebElement subCategory : subCategories) {
-					String subHref = subCategory.getAttribute("href");
 
-					if (! subHref.startsWith("http")){
-						subHref = "https://www.inflearn.com" +subHref;
+					try {
+						String subHref = subCategory.getAttribute("href");
+
+						if (!subHref.startsWith("http")) {
+							subHref = "https://www.inflearn.com" + subHref;
+						}
+
+						String subCategoryName = subCategory.getText().trim();
+
+						if (subCategoryName.equals("전체"))
+							continue;
+
+						if (subCategoryName.isBlank())
+							continue;
+
+						System.out.println("하위 카테고리명: " + subCategoryName);
+						System.out.println("하위 링크: " + subHref);
+						System.out.println("-----");
+					}catch (Exception e){
+						continue;
 					}
 
-					String subCategoryName = subCategory.getText().trim();
+					while (true) {
+						List<WebElement> lectures = driver.findElements(
+							By.cssSelector("li.css-8atqhb.mantine-1avyp1d"));
 
-					if (subCategoryName.isBlank()) continue;
+						for (WebElement lecture : lectures) {
 
-					System.out.println("하위 카테고리명: " + subCategoryName);
-					System.out.println("하위 링크: " + subHref);
-					System.out.println("-----");
+							try {
+								// String lectureLink = lecture.findElement(By.cssSelector("a[href^='/course/']"))
+								// 	.getAttribute("href"); //링크 이상함 이거 뭔지 모르겠음
+								//
+								// if (lectureLink == null || lectureLink.isBlank())
+								// 	continue;
 
+								String lectureImg = lecture.findElement(By.cssSelector("img")).getAttribute("src");
+
+								String instructor = lecture.findElement(By.cssSelector("p.mantine-Text-root.css-1r49xhh.mantine-aiouth"))
+									.getText()
+									.trim();
+
+								String title = lecture.findElement(By.cssSelector("p.mantine-Text-root.mantine-b3zn22"))
+									.getText()
+									.trim();
+
+								String description = lecture.findElement(By.cssSelector("p.mantine-Text-root.mantine-121f6eh")).getText().trim();
+
+								String price = lecture.findElement(By.cssSelector("mantine-Text-root css-uzjboo mantine-cm9qo8")).getText().trim();
+
+								String reviewCount = lecture.findElement(By.cssSelector("p.mantine-Text-root.mantine-1slzpiz")).getText().replaceAll("[()]", "").trim();
+
+								String rating = lecture.findElement(By.cssSelector("p.mantine-Text-root.mantine-3qdwx9")).getText().trim();
+
+								String studentCount = lecture.findElement(By.cssSelector("span.mantine-Text-root.mantine-jxkzgx")).getText().trim();
+
+
+
+								System.out.println("제목: " + title);
+								System.out.println("강사: " + instructor);
+								System.out.println("썸네일: " + lectureImg);
+								System.out.println("강의 설명: " + description);
+								System.out.println("별점: " + rating);
+								System.out.println("수강생 수: " + studentCount);
+								System.out.println("리뷰 수: " + reviewCount);
+								System.out.println("가격: " + price);
+								System.out.println("썸네일: " + lectureImg);
+								//System.out.println("강의 링크" + lectureLink);
+							}catch(Exception e){
+								continue;
+							}
+
+						}
+
+						List<WebElement> buttons = driver.findElements(By.cssSelector("button.mantine-qm6umh"));
+						WebElement button = buttons.get(buttons.size() -1);
+						if(!button.isEnabled()) break; // isEnabled는 클릭이 가능하냐의 의미임
+						((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", button); // 클릭하기 위해서는 이미지에서 안 보이는거 보이게 만들기
+						Thread.sleep(300);
+						((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
+						//button.click(); //데이터로 가져온 버튼 누르는 코드 (이거 에러 남)
+						Thread.sleep(1500);
+
+					}
 				}
 
 				driver.get("https://www.inflearn.com/courses/"); //하위로 이동하기 위해 전체에서 상위 카테고리를 클릭해서 페이지 이동이 있기 때문에 처음 페이지로 돌아가는 과정 필요
