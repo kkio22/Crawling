@@ -42,7 +42,8 @@ dependencies {
     // 크롤링
     implementation 'org.jsoup:jsoup:1.17.2' //jsoup
     implementation 'org.seleniumhq.selenium:selenium-java:4.21.0' // selenium
-    implementation 'io.github.bonigarcia:webdrivermanager:5.9.1' // webDriver
+    implementation 'io.github.bonigarcia:webdrivermanager:5.9.1' //
+
 
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
