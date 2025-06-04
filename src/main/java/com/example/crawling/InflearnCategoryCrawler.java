@@ -63,7 +63,7 @@ public class InflearnCategoryCrawler {
 				String href = category.getAttribute("href");
 				// 전체 URL로 변환 (상대 경로일 경우)
 				if (!href.startsWith("http")) {
-					href = "https://www.inflearn.com" + href; // href는 /courses부터 시작함
+					href = "https://www.inflearn.com" + href; // href는 courses부터 시작함
 				}
 
 				// 상위 카테고리 링크 중복 방지 또 안 돌기 위한 장치
@@ -74,10 +74,6 @@ public class InflearnCategoryCrawler {
 				// 여기서 바로 텍스트 추출
 				String categoryName = category.getText().trim();
 
-				if (categoryName.equals("전체"))
-					continue;// 해당 반복문 그냥 통과임
-
-				// 빈 문자열이면 건너뜀-> 위에서 함
 
 				System.out.println("상위 카테고리명: " + categoryName);
 				System.out.println("상위 링크: " + href);
