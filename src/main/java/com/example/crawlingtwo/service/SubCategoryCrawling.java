@@ -67,7 +67,7 @@ public class SubCategoryCrawling {
 
 	}
 
-	public void crawAll(){
+	public void crawlingAll(){
 		List<Category> mainCategories = crawlingRepository.findAll();
 		for (Category mainCategory : mainCategories){
 			getSubCategories(mainCategory);

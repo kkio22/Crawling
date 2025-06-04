@@ -5,6 +5,7 @@ package com.example.crawlingtwo.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import com.example.crawlingtwo.service.CategoryCrawling;
+import com.example.crawlingtwo.service.LectureCrawling;
 import com.example.crawlingtwo.service.SubCategoryCrawling;
 
 @Component
@@ -13,17 +14,21 @@ public class CrawlerRunner
 
 	private final CategoryCrawling categoryCrawling;
 	private final SubCategoryCrawling subCategoryCrawling;
+	private final LectureCrawling lectureCrawling;
 
-	public CrawlerRunner(CategoryCrawling categoryCrawling, SubCategoryCrawling subCategoryCrawling) {
+	public CrawlerRunner(CategoryCrawling categoryCrawling, SubCategoryCrawling subCategoryCrawling,
+		LectureCrawling lectureCrawling) {
 		this.categoryCrawling = categoryCrawling;
 		this.subCategoryCrawling = subCategoryCrawling;
+		this.lectureCrawling = lectureCrawling;
 	}
 
 	@Override // 이 매서드가 있어야 함
 	public void run(String... args) throws Exception {
 		System.out.println("크롤링 시작");
 		categoryCrawling.getMainCategories();
-		subCategoryCrawling.crawAll();
+		subCategoryCrawling.crawlingAll();
+		lectureCrawling.subCrawlingAll();
 		System.out.println("크롤링 완료!");
 	} //spring boot 실행하고, 크롤링 로직 자동 실행
 }
