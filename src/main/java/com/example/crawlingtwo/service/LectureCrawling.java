@@ -31,52 +31,63 @@ public class LectureCrawling {
 	public List<Lecture> getLecture(SubCategory subCategory) {
 		List<Lecture> lectureList = new ArrayList<>();
 		WebDriver driver = webDriverConfig.createDriver();
-		driver.get(subCategory.getUrl());
 
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-		wait.until(ExpectedConditions.presenceOfElementLocated(
-			By.cssSelector("section[class*='mantine-1avypld'] ul")
+		int page = 1;
+
+		while (true) {
+			String pagedUrl = subCategory.getUrl() + "?page_number=" + page;
+			driver.get(pagedUrl);
+
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+			wait.until(ExpectedConditions.presenceOfElementLocated(
+				By.cssSelector("ul.mantine-1avyp1d")
 			));
 
-		List<WebElement> lectureGroups = driver.findElements(
-			By.cssSelector("section[class*='mantine-1avypld'] ul")); // 2개로 나뉜 구조임
+			List<WebElement> lectures = driver.findElements(By.cssSelector("ul.mantine-1avyp1d > li"));
 
-			for (WebElement lectureGroup : lectureGroups) {
-				List<WebElement> lectures = lectureGroup.findElements(By.cssSelector("li"));
+			int lectureCountOnPage = 0;
 
-				for (WebElement lecture : lectures) {
-					try {
+			for (WebElement lecture : lectures) {
 
-						String name = lecture.findElement(
-								By.cssSelector("p.mantine-Text-root.mantine-b3zn22"))
-							.getText()
-							.trim();
+				try {
 
-						String instructor = lecture.findElement(
-								By.cssSelector("p.mantine-Text-root.css-1r49xhh.mantine-aiouth"))
-							.getText()
-							.trim();
+					String name = lecture.findElement(
+							By.cssSelector("p.mantine-Text-root.mantine-b3zn22"))
+						.getText()
+						.trim();
 
-						String lectureLink = lecture.findElement(By.cssSelector("a[href*='/course/']"))
-							.getAttribute("href");
+					String instructor = lecture.findElement(
+							By.cssSelector("p.mantine-Text-root.css-1r49xhh.mantine-aiouth"))
+						.getText()
+						.trim();
 
-						String lectureImage = lecture.findElement(By.cssSelector("img")).getAttribute("src");
+					String lectureLink = lecture.findElement(By.cssSelector("a[href*='/course/']"))
+						.getAttribute("href");
 
-						lectureList.add(new Lecture(name, instructor, lectureImage, lectureLink, subCategory));
+					String lectureImage = lecture.findElement(By.cssSelector("img")).getAttribute("src");
 
-					} catch (NoSuchElementException e) {
-						continue;
-					}
+					lectureList.add(new Lecture(name, instructor, lectureImage, lectureLink, subCategory));
+
+					lectureCountOnPage++;
+
+				} catch (NoSuchElementException e) {
+					continue;
 				}
 			}
 
+			if (lectureCountOnPage == 0)
+				break;
+			page++;
+		}
+
+		driver.quit();
 		lectureRepository.saveAll(lectureList);
 
 		return lectureList;
 
 	}
 
-	public void subCrawlingAll (){
+	public void subCrawlingAll() {
 		List<SubCategory> subCategories = subCrawlingRepository.findAll();
 		for (SubCategory subCategory : subCategories) {
 			getLecture(subCategory);

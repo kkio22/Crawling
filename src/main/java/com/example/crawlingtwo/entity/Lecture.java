@@ -40,6 +40,7 @@ public class Lecture {
 	//private Float price;
 	@Column(length = 1000)
 	private String lectureImage;
+	@Column(length = 1000)
 	private String lectureLink;
 
 	public Lecture(String name, String instructor, String lectureImage, String lectureLink, SubCategory subCategory){

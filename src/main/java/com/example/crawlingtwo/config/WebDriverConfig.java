@@ -7,13 +7,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
+
 @Configuration
 public class WebDriverConfig {
 	@Bean
 	public WebDriver createDriver() {
 		// Chrome 옵션 설정
 		ChromeOptions options = new ChromeOptions();
-		//options.addArguments("--headless=new"); //
+		//options.addArguments("--headless=new");
 		options.addArguments("--lang=ko"); //언어 설정
 		options.addArguments(
 			"--no-sandbox"); // 샌드박스 보안기능 비활성화  -> 크롬은 기본적으로 sandbox에서 실행됨 근데 리눅스나 CI/CD 환경에서는 이 sandbox와 충돌이 생겨 크롬이 실행이 안 될 수도 있음 그래서 꺼놓는 거임
