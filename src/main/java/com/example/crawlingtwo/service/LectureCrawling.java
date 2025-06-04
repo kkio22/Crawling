@@ -45,7 +45,7 @@ public class LectureCrawling {
 
 			List<WebElement> lectures = driver.findElements(By.cssSelector("ul.mantine-1avyp1d > li"));
 
-			int lectureCountOnPage = 0;
+			int lectureCountPage = 0;
 
 			for (WebElement lecture : lectures) {
 
@@ -68,14 +68,14 @@ public class LectureCrawling {
 
 					lectureList.add(new Lecture(name, instructor, lectureImage, lectureLink, subCategory));
 
-					lectureCountOnPage++;
+					lectureCountPage++;
 
 				} catch (NoSuchElementException e) {
 					continue;
 				}
 			}
 
-			if (lectureCountOnPage == 0)
+			if (lectureCountPage == 0)
 				break;
 			page++;
 		}
