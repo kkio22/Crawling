@@ -35,9 +35,9 @@ public class Lecture {
 	private SubCategory subcategory;
 
 	@Column(columnDefinition = "TEXT")
-	private String summary;
+	//private String summary;
 	private String instructor;
-	private Float price;
+	//private Float price;
 	@Column(length = 1000)
 	private String lectureImage;
 	private String lectureLink;

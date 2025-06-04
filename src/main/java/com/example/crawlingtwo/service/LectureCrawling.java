@@ -3,6 +3,7 @@ package com.example.crawlingtwo.service;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -34,32 +35,40 @@ public class LectureCrawling {
 
 		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 		wait.until(ExpectedConditions.presenceOfElementLocated(
-			By.cssSelector("li.css-8atqhb.mantine-1avyp1d")
+			By.cssSelector("section[class*='mantine-1avypld'] ul")
 			));
 
-		List<WebElement> lectures = driver.findElements(
-			By.cssSelector("li.css-8atqhb.mantine-1avyp1d"));
+		List<WebElement> lectureGroups = driver.findElements(
+			By.cssSelector("section[class*='mantine-1avypld'] ul")); // 2개로 나뉜 구조임
 
-		for (WebElement lecture : lectures) {
+			for (WebElement lectureGroup : lectureGroups) {
+				List<WebElement> lectures = lectureGroup.findElements(By.cssSelector("li"));
 
-			String name = lecture.findElement(
-					By.cssSelector("p.mantine-Text-root.mantine-b3zn22"))
-				.getText()
-				.trim();
+				for (WebElement lecture : lectures) {
+					try {
 
-			String instructor = lecture.findElement(
-					By.cssSelector("p.mantine-Text-root.css-1r49xhh.mantine-aiouth"))
-				.getText()
-				.trim();
+						String name = lecture.findElement(
+								By.cssSelector("p.mantine-Text-root.mantine-b3zn22"))
+							.getText()
+							.trim();
 
-			String lectureLink = lecture.findElement(By.cssSelector("a[href*='/course/']"))
-				.getAttribute("href");
+						String instructor = lecture.findElement(
+								By.cssSelector("p.mantine-Text-root.css-1r49xhh.mantine-aiouth"))
+							.getText()
+							.trim();
 
-			String lectureImage = lecture.findElement(By.cssSelector("img")).getAttribute("src");
+						String lectureLink = lecture.findElement(By.cssSelector("a[href*='/course/']"))
+							.getAttribute("href");
 
-			lectureList.add(new Lecture(name, instructor, lectureImage, lectureLink, subCategory));
+						String lectureImage = lecture.findElement(By.cssSelector("img")).getAttribute("src");
 
-		}
+						lectureList.add(new Lecture(name, instructor, lectureImage, lectureLink, subCategory));
+
+					} catch (NoSuchElementException e) {
+						continue;
+					}
+				}
+			}
 
 		lectureRepository.saveAll(lectureList);
 
