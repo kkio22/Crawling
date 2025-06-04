@@ -52,7 +52,7 @@ public class LectureCrawling {
 				try {
 
 					String name = lecture.findElement(
-							By.cssSelector("p.mantine-Text-root.mantine-b3zn22"))
+							By.cssSelector("p.mantine-Text-root.css-10bh5qj.mantine-b3zn22"))
 						.getText()
 						.trim();
 
